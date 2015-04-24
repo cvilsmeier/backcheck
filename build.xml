@@ -6,6 +6,7 @@
 			<fileset dir="lib" includes="*.jar"/>
 		</path>
 		<path id="bootclasspath.ref">
+			<!-- that's what i call hard coded -->
 			<pathelement location="C:/java/jdk-1.6.0_20/rt.jar"/>
 		</path>
 		<property name="debug" value="false"/>
