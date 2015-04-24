@@ -1,0 +1,48 @@
+
+<project name="cmark-java" default="build-all" basedir=".">
+
+	<target name="init">
+		<path id="cp.ref">
+			<!-- <fileset dir="app/lib" includes="*.jar"/> -->
+		</path>
+		<property name="debug" value="false"/>
+		<property name="version" value="1.0.0"/> <!-- sync version with changelog.txt -->
+	</target>
+	
+	<target name="clean" depends="init">
+		<delete dir="build"/>
+		<mkdir dir="build"/>
+	</target>
+
+	<target name="compile" depends="init" >
+		<mkdir dir="build/bin"/>
+		<javac destdir="build/bin" debug="${debug}" includeantruntime="false">
+			<classpath refid="cp.ref"/>
+			<src path="src/main/java"/>
+		</javac>
+	</target>
+
+	<target name="jar" depends="init, compile">
+		<mkdir dir="build/jar"/>
+		<jar jarfile="build/jar/backcheck-${version}.jar">
+			<fileset dir="build/bin"/>
+		</jar>
+		<jar jarfile="build/jar/backcheck-${version}-sources.jar">
+			<fileset dir="src/main"/>
+		</jar>
+	</target>
+
+	<target name="dist" depends="init, compile, jar" >
+		<mkdir dir="build/dist"/>
+		<copy todir="build/dist" >
+			<fileset dir="build/jar"/>
+		</copy>
+	</target>
+
+	<target name="build-all" depends="init, compile, jar, dist">
+	</target>
+
+	<target name="rebuild-all" depends="init, clean, build-all">
+	</target>
+		
+</project>
