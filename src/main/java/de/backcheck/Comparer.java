@@ -16,73 +16,73 @@ public class Comparer {
 		this.maxdepth = maxdepth;
 	}
 
-	public CompareResult compare(File leftFile, File rightFile) {
-		logger.info("comparing "+leftFile+" | "+rightFile);
+	public CompareResult compare(File src, File dest) {
+		logger.info("comparing "+src+" | "+dest);
 		CompareResultBuilder resultBuilder = new CompareResultBuilder();
-		compare(0,leftFile, rightFile,"", resultBuilder);
+		compare(0,src, dest,"", resultBuilder);
 		return resultBuilder.build();
 	}
 		
-	private void compare(int depth, File leftRoot, File rightRoot, String relPath, CompareResultBuilder resultBuilder) {
+	private void compare(int depth, File srcRoot, File destRoot, String relPath, CompareResultBuilder resultBuilder) {
 		if( maxdepth>=0 && depth>maxdepth+1) return;
-		File leftFile = new File(leftRoot, relPath);
-		File rightFile = new File(rightRoot, relPath);
-		logger.debug("" + leftFile);
-		if (leftFile.exists()) {
-			if (rightFile.exists()) {
-				if (leftFile.isDirectory() && rightFile.isDirectory()) {
-					compareDirs(depth, leftRoot, rightRoot, relPath, resultBuilder);
-				} else if (leftFile.isFile() && rightFile.isFile()) {
-					compareFiles(leftRoot, rightRoot, relPath, resultBuilder);
+		File srcPath = new File(srcRoot, relPath);
+		File destPath = new File(destRoot, relPath);
+		logger.debug("" + srcPath);
+		if (srcPath.exists()) {
+			if (destPath.exists()) {
+				if (srcPath.isDirectory() && destPath.isDirectory()) {
+					compareDirs(depth, srcRoot, destRoot, relPath, resultBuilder);
+				} else if (srcPath.isFile() && destPath.isFile()) {
+					compareFiles(srcRoot, destRoot, relPath, resultBuilder);
 				} else {
-					logger.info("DIFF TYPE      " + leftFile + " | " + rightFile);
+					logger.info("DIFF TYPE      " + srcPath + " | " + destPath);
 					resultBuilder.incDiffCount();
 				}
 			} else {
-				logger.info("NOT FOUND      " + rightFile);
+				logger.info("NOT FOUND      " + destPath);
 				resultBuilder.incDiffCount();
 			}
 		} else {
-			logger.info("NOT FOUND      " + leftFile);
+			logger.info("NOT FOUND      " + srcPath);
 		}
 	}
 
-	private void compareDirs(int depth, File leftRoot, File rightRoot, String relPath, CompareResultBuilder resultBuilder) {
-		File leftDir = new File(leftRoot, relPath);
-		for (String name : leftDir.list()) {
-			String childPath = relPath + "/" + name;
-			compare(depth+1, leftRoot, rightRoot, childPath, resultBuilder);
+	private void compareDirs(int depth, File srcRoot, File destRoot, String relPath, CompareResultBuilder resultBuilder) {
+		File srcDir = new File(srcRoot, relPath);
+		for (String name : srcDir.list()) {
+			String relChildPath = relPath + "/" + name;
+			compare(depth+1, srcRoot, destRoot, relChildPath, resultBuilder);
 		}
 	}
 
-	private void compareFiles(File leftRoot, File rightRoot, String relPath, CompareResultBuilder resultBuilder) {
-		File leftFile = new File(leftRoot, relPath);
-		File rightFile = new File(rightRoot, relPath);
+	private void compareFiles(File srcRoot, File destRoot, String relPath, CompareResultBuilder resultBuilder) {
+		File srcPath = new File(srcRoot, relPath);
+		File destPath = new File(destRoot, relPath);
 		resultBuilder.incFileCount();
-		if (!leftFile.exists()) {
-			logger.info("NOT FOUND      " + leftFile);
+		if (!srcPath.exists()) {
+			logger.info("NOT FOUND      " + srcPath);
 			resultBuilder.incDiffCount();
-		} else if (!rightFile.exists()) {
-			logger.info("NOT FOUND      " + rightFile);
+		} else if (!destPath.exists()) {
+			logger.info("NOT FOUND      " + destPath);
 			resultBuilder.incDiffCount();
-		} else if (leftFile.length() != rightFile.length()) {
-			logger.info("DIFF LENGTH    " + leftFile + " " + leftFile.length() + " | " + rightFile + " " + rightFile.length());
+		} else if (srcPath.length() != destPath.length()) {
+			logger.info("DIFF LENGTH    " + srcPath + " " + srcPath.length() + " | " + destPath + " " + destPath.length());
 			resultBuilder.incDiffCount();
 		} else {
 			try {
-				byte[] leftCs = checksummer.checksum(leftFile);
+				byte[] srcCs = checksummer.checksum(srcPath);
 				try {
-					byte[] rightCs = checksummer.checksum(rightFile);
-					if (! Arrays.equals(leftCs, rightCs)) {
-						logger.info("DIFF CHECKSUM  " + leftFile + " | " + rightFile);
+					byte[] destCs = checksummer.checksum(destPath);
+					if (! Arrays.equals(srcCs, destCs)) {
+						logger.info("DIFF CHECKSUM  " + srcPath + " | " + destPath);
 						resultBuilder.incDiffCount();
 					}
 				} catch (Exception e) {
-					logger.info("IO ERROR       " + rightFile + " " + e.getMessage());
+					logger.info("IO ERROR       " + destPath + " " + e.getMessage());
 					resultBuilder.incDiffCount();
 				}
 			} catch (Exception e) {
-				logger.info("IO ERROR       " + leftFile + " " + e.getMessage());
+				logger.info("IO ERROR       " + srcPath + " " + e.getMessage());
 			}
 		}
 	}
