@@ -2,6 +2,8 @@ package de.backcheck;
 
 import java.io.File;
 
+import de.backcheck.compare.CompareResult;
+import de.backcheck.compare.Comparer;
 import de.backcheck.record.Record;
 import de.backcheck.record.Recorder;
 

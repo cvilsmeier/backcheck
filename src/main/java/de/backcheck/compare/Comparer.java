@@ -1,8 +1,10 @@
-package de.backcheck;
+package de.backcheck.compare;
 
 import java.io.File;
 import java.util.Arrays;
 
+import de.backcheck.Checksummer;
+import de.backcheck.Logger;
 import de.backcheck.util.FileUtils;
 
 public class Comparer {

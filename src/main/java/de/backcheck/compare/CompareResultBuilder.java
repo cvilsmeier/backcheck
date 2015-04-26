@@ -1,4 +1,4 @@
-package de.backcheck;
+package de.backcheck.compare;
 
 public class CompareResultBuilder {
 
