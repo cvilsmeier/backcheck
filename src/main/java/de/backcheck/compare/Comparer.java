@@ -1,7 +1,6 @@
 package de.backcheck.compare;
 
 import java.io.File;
-import java.util.Arrays;
 
 import de.backcheck.Checksummer;
 import de.backcheck.Logger;
@@ -72,10 +71,10 @@ public class Comparer {
 			resultBuilder.incDiffCount();
 		} else {
 			try {
-				byte[] srcCs = checksummer.checksum(srcFile);
+				String srcCs = checksummer.checksum(srcFile);
 				try {
-					byte[] destCs = checksummer.checksum(destFile);
-					if (! Arrays.equals(srcCs, destCs)) {
+					String destCs = checksummer.checksum(destFile);
+					if (! srcCs.equals(destCs)) {
 						logger.info("DIFF CHECKSUM  " + srcFile + " | " + destFile);
 						resultBuilder.incDiffCount();
 					}

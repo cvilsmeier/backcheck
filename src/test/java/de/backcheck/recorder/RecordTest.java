@@ -2,7 +2,6 @@ package de.backcheck.recorder;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.Collections;
 
 import org.junit.Test;
 
@@ -13,9 +12,9 @@ public class RecordTest extends TestBase {
 	
 	@Test
 	public void testWriteAndReadEmpty() throws Exception {
-		File tmp = tempDir();
-		File dat = new File(tmp,"dat"); 
-		Record root = new Record("root", true, 0, "", Collections.emptyList());
+		File tmpdir = tempDir();
+		File dat = tempFile(tmpdir,"dat",""); 
+		Record root = new Record("root", true, 0, "");
 		root.writeToFile(dat);
 		Record r = Record.readFromFile(dat);
 		assertEquals("root", r.getName());
@@ -26,10 +25,10 @@ public class RecordTest extends TestBase {
 	
 	@Test
 	public void testWriteAndReadNonEmpty() throws Exception {
-		File tmp = tempDir();
-		File dat = new File(tmp,"dat"); 
-		Record r1 = new Record("r1", false, 1, "1111", Collections.emptyList());
-		Record r2 = new Record("r2", false, 2, "2222", Collections.emptyList());
+		File tmpdir = tempDir();
+		File dat = tempFile(tmpdir,"dat",""); 
+		Record r1 = new Record("r1", false, 1, "1111");
+		Record r2 = new Record("r2", false, 2, "2222");
 		Record root = new Record("root", true, 0, "", Arrays.asList(r1,r2));
 		root.writeToFile(dat);
 		Record r = Record.readFromFile(dat);

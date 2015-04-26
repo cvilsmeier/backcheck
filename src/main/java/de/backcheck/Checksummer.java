@@ -5,5 +5,5 @@ import java.io.IOException;
 
 public interface Checksummer {
 
-	public byte[] checksum(File file) throws IOException;
+	public String checksum(File file) throws IOException;
 }

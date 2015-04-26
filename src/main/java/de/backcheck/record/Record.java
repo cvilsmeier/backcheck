@@ -52,6 +52,10 @@ public class Record {
 	private final String checksum;
 	private final List<Record> records;
 
+	public Record(String name, boolean directory, long length, String checksum) {
+		this(name, directory, length, checksum, new ArrayList<Record>());
+	}
+
 	public Record(String name, boolean directory, long length, String checksum, List<Record> records) {
 		super();
 		this.name = name;

@@ -7,10 +7,12 @@ import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import de.backcheck.util.HexUtils;
+
 public class ChecksummerImpl implements Checksummer {
 
 	@Override
-	public byte[] checksum(File file) throws IOException {
+	public String checksum(File file) throws IOException {
 		MessageDigest md;
 		try {
 			md = MessageDigest.getInstance("MD5");
@@ -41,7 +43,7 @@ public class ChecksummerImpl implements Checksummer {
 			}
 		}
 		byte[] md5 = md.digest();
-		return md5;
+		return HexUtils.bytesToHex(md5);
 	}
 
 }

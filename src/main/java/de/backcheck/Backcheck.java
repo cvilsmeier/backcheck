@@ -6,6 +6,8 @@ import de.backcheck.compare.CompareResult;
 import de.backcheck.compare.Comparer;
 import de.backcheck.record.Record;
 import de.backcheck.record.Recorder;
+import de.backcheck.verify.Verifier;
+import de.backcheck.verify.VerifyResult;
 
 public class Backcheck {
 
@@ -63,6 +65,8 @@ public class Backcheck {
 				exitCode = executeCompare(checksummer, logger, maxdepth, srcFile, destFile);
 			} else if( operation.equals("record")) {
 				exitCode = executeRecord(checksummer, logger, maxdepth, srcFile, destFile);
+			} else if( operation.equals("verify")) {
+				exitCode = executeVerify(checksummer, logger, srcFile, destFile);
 			} else {
 				System.err.println("unknown operation '"+operation+"', must be 'compare' or 'record' or 'verify'");
 				printUsage();
@@ -110,6 +114,26 @@ public class Backcheck {
 		return exitCode;
 	}
 
+	
+	public static int executeVerify(Checksummer checksummer, Logger logger, File srcFile, File destPath) {
+		int exitCode = 0;
+		Record rootRecord = null;
+		try {
+			rootRecord = Record.readFromFile(srcFile);
+		} catch (Exception e) {
+			System.err.println("cannot read "+srcFile+": "+e.getMessage());
+			exitCode = 2;
+		}
+		if( rootRecord != null ) {
+			Verifier verifier = new Verifier(checksummer, logger);
+			VerifyResult verifyResult = verifier.verify(rootRecord, destPath);
+			if( verifyResult.getDiffCount() > 0 ) {
+				exitCode = 1;
+			}
+		}
+		return exitCode;
+	}
+
 	private static void printUsage() {
 		System.out.println("");
 		System.out.println("Backcheck - a recursive file comparison and verification tool");
@@ -141,8 +165,6 @@ public class Backcheck {
 		System.out.println("    0  Success/No differences found");
 		System.out.println("    1  One or more differences found");
 		System.out.println("    2  Other error");
-		System.out.println("");
-		System.out.println("");
 		System.out.println("");
 		System.out.println("OPTIONS");
 		System.out.println("  -v --verbose");

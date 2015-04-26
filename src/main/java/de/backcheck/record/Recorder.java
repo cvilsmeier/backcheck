@@ -2,12 +2,10 @@ package de.backcheck.record;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 
 import de.backcheck.Checksummer;
 import de.backcheck.Logger;
 import de.backcheck.util.FileUtils;
-import de.backcheck.util.HexUtils;
 
 public class Recorder {
 
@@ -45,9 +43,8 @@ public class Recorder {
 			record = new Record(file.getName(), true, 0, "", records);
 		} else if (file.isFile()) {
 			try {
-				byte[] cs = checksummer.checksum(file);
-				String checksum = HexUtils.bytesToHex(cs);
-				record = new Record(file.getName(), false, file.length(), checksum, Collections.emptyList());
+				String checksum = checksummer.checksum(file);
+				record = new Record(file.getName(), false, file.length(), checksum);
 			} catch (Exception e) {
 				logger.info("IO ERROR       " + file + ": " + e.getMessage());
 			}
