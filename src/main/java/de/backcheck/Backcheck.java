@@ -13,10 +13,9 @@ public class Backcheck {
 
 	public static final String VERSION_STRING = "1.0.0";
 
-
 	public static void main(String[] args) {
 		try {
-			if( args.length == 0 ) {
+			if (args.length == 0) {
 				printUsage();
 				System.exit(2);
 			}
@@ -25,14 +24,14 @@ public class Backcheck {
 			File logFile = null;
 			int maxdepth = -1;
 			File srcFile = null;
-			File destFile = null;		
+			File destFile = null;
 			for (int i = 0; i < args.length; i++) {
 				if (args[i].equals("-v") || args[i].equals("--verbose")) {
 					verbosity++;
 				} else if (args[i].equals("--logfile")) {
-					logFile = new File(args[i+1]);
+					logFile = new File(args[i + 1]);
 				} else if (args[i].equals("--maxdepth")) {
-					maxdepth = Integer.parseInt(args[i+1]);
+					maxdepth = Integer.parseInt(args[i + 1]);
 				} else if (args[i].equals("--help")) {
 					printUsage();
 					System.exit(0);
@@ -57,77 +56,80 @@ public class Backcheck {
 				printUsage();
 				System.exit(2);
 			}
-	
+
 			ChecksummerImpl checksummer = new ChecksummerImpl();
 			LoggerImpl logger = new LoggerImpl(verbosity, logFile);
 			int exitCode = 0;
-			if( operation.equals("compare")) {
+			if (operation.equals("compare")) {
 				exitCode = executeCompare(checksummer, logger, maxdepth, srcFile, destFile);
-			} else if( operation.equals("record")) {
+			} else if (operation.equals("record")) {
 				exitCode = executeRecord(checksummer, logger, maxdepth, srcFile, destFile);
-			} else if( operation.equals("verify")) {
+			} else if (operation.equals("verify")) {
 				exitCode = executeVerify(checksummer, logger, srcFile, destFile);
 			} else {
-				System.err.println("unknown operation '"+operation+"', must be 'compare' or 'record' or 'verify'");
+				System.err.println("unknown operation '" + operation + "', must be 'compare' or 'record' or 'verify'");
 				printUsage();
 				exitCode = 2;
 			}
 			logger.close();
 			System.exit(exitCode);
-		} catch( Throwable t ) {
+		} catch (Throwable t) {
 			t.printStackTrace(System.err);
 			System.exit(2);
 		}
 	}
 
-
-	
-	public static int executeCompare(Checksummer checksummer, Logger logger, int maxdepth, File srcFile, File destFile) {
+	public static int executeCompare(Checksummer checksummer, Logger logger, int maxdepth, File srcPath, File destPath) {
+		logger.info("comparing " + srcPath + " -> " + destPath);
 		Comparer comparer = new Comparer(checksummer, logger, maxdepth);
-		CompareResult compareResult = comparer.compare(srcFile, destFile);
-		logger.info("finished "+srcFile+" | "+destFile);
-		logger.info("  "+compareResult.getFileCount()+" files compared");
-		logger.info("  "+compareResult.getDiffCount()+" differences found");
+		CompareResult compareResult = comparer.compare(srcPath, destPath);
+		logger.info("finished comparing " + srcPath + " | " + destPath);
+		logger.info("  " + compareResult.getPathCount() + " files compared");
+		logger.info("  " + compareResult.getDiffCount() + " differences found");
 		int exitCode = 0;
-		if( compareResult.getDiffCount() > 0 ) {
+		if (compareResult.getDiffCount() > 0) {
 			exitCode = 1;
 		}
 		return exitCode;
 	}
 
-	
-	public static int executeRecord(Checksummer checksummer, Logger logger, int maxdepth, File srcFile, File destFile) {
+	public static int executeRecord(Checksummer checksummer, Logger logger, int maxdepth, File srcPath, File destFile) {
+		logger.info("recording " + srcPath + " -> " + destFile);
 		Recorder recorder = new Recorder(checksummer, logger, maxdepth);
-		Record rootRecord = recorder.record(srcFile);
+		Record rootRecord = recorder.record(srcPath);
 		int exitCode = 0;
 		try {
-			if( rootRecord != null ) {
+			if (rootRecord != null) {
 				rootRecord.writeToFile(destFile);
+				logger.info("finished recording " + srcPath + ", wrote record file " + destFile);
 			} else {
 				System.err.println("recorder error");
 				exitCode = 2;
 			}
 		} catch (Exception e) {
-			System.err.println("cannot write "+destFile+": "+e.getMessage());
+			System.err.println("cannot write " + destFile + " (" + e.getMessage() + ")");
 			exitCode = 2;
 		}
 		return exitCode;
 	}
 
-	
 	public static int executeVerify(Checksummer checksummer, Logger logger, File srcFile, File destPath) {
+		logger.info("verifying " + srcFile + " -> " + destPath);
 		int exitCode = 0;
 		Record rootRecord = null;
 		try {
 			rootRecord = Record.readFromFile(srcFile);
 		} catch (Exception e) {
-			System.err.println("cannot read "+srcFile+": "+e.getMessage());
+			System.err.println("cannot read " + srcFile + " (" + e.getMessage()+")");
 			exitCode = 2;
 		}
-		if( rootRecord != null ) {
+		if (rootRecord != null) {
 			Verifier verifier = new Verifier(checksummer, logger);
 			VerifyResult verifyResult = verifier.verify(rootRecord, destPath);
-			if( verifyResult.getDiffCount() > 0 ) {
+			logger.info("finished verification of " + destPath);
+			logger.info("  " + verifyResult.getRecordCount() + " recorded paths compared");
+			logger.info("  " + verifyResult.getDiffCount() + " differences found");
+			if (verifyResult.getDiffCount() > 0) {
 				exitCode = 1;
 			}
 		}
@@ -151,10 +153,11 @@ public class Backcheck {
 		System.out.println("  the files in these directories, recursively.");
 		System.out.println("");
 		System.out.println("  If started with 'record', Backcheck traverses SRC, calculates");
-		System.out.println("  each file's checksum, and writes them to DEST.");
+		System.out.println("  each file's length and checksum, and writes them to DEST file.");
 		System.out.println("");
-		System.out.println("  If started with 'verify', Backcheck loads checksums");
-		System.out.println("  from SRC (a file created with 'record') and compares them with DEST.");
+		System.out.println("  If started with 'verify', Backcheck loads lengths and checksums");
+		System.out.println("  from SRC (a file created with 'record') and compares them");
+		System.out.println("  with DEST, recursively.");
 		System.out.println("");
 		System.out.println("  The record/verify mode can be used for taking a snapshot of an");
 		System.out.println("  existing directory structure and later verify that the files in");
@@ -175,6 +178,7 @@ public class Backcheck {
 		System.out.println("");
 		System.out.println("  --maxdepth <maxdepth>");
 		System.out.println("    Descend only <maxdepth> levels deep into directory structure");
+		System.out.println("    (for 'compare' and 'record')");
 		System.out.println("");
 		System.out.println("  --help");
 		System.out.println("    Print this help page and exit");
@@ -197,7 +201,5 @@ public class Backcheck {
 		System.out.println("    exists in /backups/archive and has the same checksum");
 		System.out.println("");
 	}
-
-
 
 }

@@ -27,6 +27,7 @@ public class Verifier {
 	private void verify(Record record, File destRoot, String relPath, VerifyResult verifyResult) {
 		File destPath = relPath.isEmpty() ? destRoot : new File(destRoot, relPath);
 		logger.debug(destPath.toString());
+		verifyResult.incRecordCount();
 		if( destPath.exists() ) {
 			if( record.isDirectory() ) {
 				if( destPath.isDirectory() ) {
@@ -34,7 +35,7 @@ public class Verifier {
 						verify(r, destRoot, relPath.isEmpty() ? r.getName() : relPath+"/"+r.getName(), verifyResult);
 					}
 				} else {
-					logger.info("DIFF TYPE      expected "+destPath+" to be a directory");
+					logger.info("DIFF TYPE      "+destPath+" (expected directory but was file)");
 					verifyResult.incDiffCount();
 				}
 			} else {
@@ -55,7 +56,7 @@ public class Verifier {
 						verifyResult.incDiffCount();
 					}
 				} else {
-					logger.info("DIFF TYPE      expected "+destPath+" to be a file");
+					logger.info("DIFF TYPE      "+destPath+" (expected file but found a directory)");
 					verifyResult.incDiffCount();
 				}
 			}

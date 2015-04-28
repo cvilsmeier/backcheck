@@ -21,7 +21,6 @@ public class Recorder {
 	}
 
 	public Record record(File root) {
-		logger.info("recording " + root);
 		return record(0, root, "");
 	}
 
@@ -35,7 +34,7 @@ public class Recorder {
 				for (String name : FileUtils.listAndSortFilenames(file)) {
 					String subPath = relPath.isEmpty() ? name : relPath + "/" + name;
 					Record subRecord = record(depth + 1, root, subPath);
-					if( subRecord != null ) {
+					if (subRecord != null) {
 						records.add(subRecord);
 					}
 				}
@@ -46,7 +45,7 @@ public class Recorder {
 				String checksum = checksummer.checksum(file);
 				record = new Record(file.getName(), false, file.length(), checksum);
 			} catch (Exception e) {
-				logger.info("IO ERROR       " + file + ": " + e.getMessage());
+				logger.info("IO ERROR       " + file + " (" + e.getMessage() + ")");
 			}
 		}
 		return record;

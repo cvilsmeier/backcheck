@@ -2,17 +2,20 @@ package de.backcheck.compare;
 
 public class CompareResult {
 
-	private final int fileCount;
-	private final int diffCount;
+	private int pathCount = 0;
+	private int diffCount = 0;
 
-	public CompareResult(int fileCount, int diffCount) {
-		super();
-		this.fileCount = fileCount;
-		this.diffCount = diffCount;
+	
+	public void incPathCount() {
+		pathCount++;
 	}
 
-	public int getFileCount() {
-		return fileCount;
+	public void incDiffCount() {
+		diffCount++;
+	}
+	
+	public int getPathCount() {
+		return pathCount;
 	}
 
 	public int getDiffCount() {

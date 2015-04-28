@@ -1,6 +1,5 @@
 ~~~
 
-
 Backcheck - a recursive file comparison and verification tool
 
 SYNOPSIS
@@ -16,10 +15,11 @@ DESCRIPTION
   the files in these directories, recursively.
 
   If started with 'record', Backcheck traverses SRC, calculates
-  each file's checksum, and writes them to DEST.
+  each file's length and checksum, and writes them to DEST file.
 
-  If started with 'verify', Backcheck loads checksums
-  from SRC (a file created with 'record') and compares them with DEST.
+  If started with 'verify', Backcheck loads lengths and checksums
+  from SRC (a file created with 'record') and compares them
+  with DEST, recursively.
 
   The record/verify mode can be used for taking a snapshot of an
   existing directory structure and later verify that the files in
