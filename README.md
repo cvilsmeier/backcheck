@@ -1,6 +1,6 @@
 ~~~
 
-Backcheck - a recursive file comparison and verification tool
+Backcheck - A recursive file comparison and verification tool
 
 SYNOPSIS
 

@@ -131,7 +131,7 @@ public class Backcheck {
 
 	private static void printUsage() {
 		System.out.println("");
-		System.out.println("Backcheck - a recursive file comparison and verification tool");
+		System.out.println("Backcheck - A recursive file comparison and verification tool");
 		System.out.println("");
 		System.out.println("SYNOPSIS");
 		System.out.println("");
