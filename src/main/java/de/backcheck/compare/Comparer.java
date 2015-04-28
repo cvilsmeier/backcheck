@@ -1,6 +1,9 @@
 package de.backcheck.compare;
 
 import java.io.File;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import de.backcheck.Checksummer;
 import de.backcheck.Logger;
@@ -11,12 +14,14 @@ public class Comparer {
 	private final Checksummer checksummer;
 	private final Logger logger;
 	private final int maxdepth;
+	private final ExecutorService executorService;
 	
 	public Comparer(Checksummer checksummer, Logger logger, int maxdepth) {
 		super();
 		this.checksummer = checksummer;
 		this.logger = logger;
 		this.maxdepth = maxdepth;
+		this.executorService = Executors.newFixedThreadPool(2);
 	}
 
 	public CompareResult compare(File srcPath, File destPath) {
@@ -69,21 +74,34 @@ public class Comparer {
 			logger.info("DIFF LENGTH    " + srcFile);
 			compareResult.incDiffCount();
 		} else {
-			try {
-				String srcCs = checksummer.checksum(srcFile);
-				try {
-					String destCs = checksummer.checksum(destFile);
-					if (! srcCs.equals(destCs)) {
-						logger.info("DIFF CHECKSUM  " + srcFile);
-						compareResult.incDiffCount();
-					}
-				} catch (Exception e) {
-					logger.info("IO ERROR       " + destFile + " (" + e.getMessage()+")");
+			Future<String> srcFuture = executorService.submit(new ChecksumTask(checksummer, srcFile)); 
+			Future<String> destFuture = executorService.submit(new ChecksumTask(checksummer, destFile)); 
+			try {				
+				String srcCs = srcFuture.get();
+				String destCs = destFuture.get();
+				if (! srcCs.equals(destCs)) {
+					logger.info("DIFF CHECKSUM  " + srcFile);
 					compareResult.incDiffCount();
 				}
 			} catch (Exception e) {
-				logger.info("IO ERROR       " + srcFile + " (" + e.getMessage()+")");
+				logger.info("IO ERROR       (" + e.getMessage()+")");
 			}
+			
+//			try {				
+//				String srcCs = checksummer.checksum(srcFile);
+//				try {
+//					String destCs = checksummer.checksum(destFile);
+//					if (! srcCs.equals(destCs)) {
+//						logger.info("DIFF CHECKSUM  " + srcFile);
+//						compareResult.incDiffCount();
+//					}
+//				} catch (Exception e) {
+//					logger.info("IO ERROR       " + destFile + " (" + e.getMessage()+")");
+//					compareResult.incDiffCount();
+//				}
+//			} catch (Exception e) {
+//				logger.info("IO ERROR       " + srcFile + " (" + e.getMessage()+")");
+//			}
 		}
 	}
 }

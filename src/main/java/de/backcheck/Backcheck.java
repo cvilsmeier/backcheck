@@ -1,6 +1,7 @@
 package de.backcheck;
 
 import java.io.File;
+import java.util.Date;
 
 import de.backcheck.compare.CompareResult;
 import de.backcheck.compare.Comparer;
@@ -80,6 +81,7 @@ public class Backcheck {
 	}
 
 	public static int executeCompare(Checksummer checksummer, Logger logger, int maxdepth, File srcPath, File destPath) {
+		logger.info(""+new Date());
 		logger.info("comparing " + srcPath + " -> " + destPath);
 		Comparer comparer = new Comparer(checksummer, logger, maxdepth);
 		CompareResult compareResult = comparer.compare(srcPath, destPath);
@@ -89,6 +91,7 @@ public class Backcheck {
 		if (compareResult.getDiffCount() > 0) {
 			exitCode = 1;
 		}
+		logger.info(""+new Date());
 		return exitCode;
 	}
 
