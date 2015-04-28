@@ -9,8 +9,8 @@ import org.junit.Test;
 import de.backcheck.ChecksummerImpl;
 import de.backcheck.Logger;
 import de.backcheck.TestBase;
-import de.backcheck.record.Record;
 import de.backcheck.record.Recorder;
+import de.backcheck.record.RecorderResult;
 
 public class RecorderTest extends TestBase {
 	
@@ -25,10 +25,6 @@ public class RecorderTest extends TestBase {
 		public void debug(String msg) {
 			logs.add(msg);
 		}
-
-		void reset() {
-			logs.clear();
-		}
 	}
 
 	ChecksummerImpl checksummer;
@@ -40,46 +36,49 @@ public class RecorderTest extends TestBase {
 		checksummer = new ChecksummerImpl();
 		logger = new Lger();
 		tmpdir = tempDir();
-		File d1 = tempDir(tmpdir, "dir1");
-		File d2 = tempDir(tmpdir, "dir2");
+		File dir1 = tempDir(tmpdir, "dir1");
+		File dir2 = tempDir(tmpdir, "dir2");
+		File dir3 = tempDir(dir2, "dir3");
 		tempFile(tmpdir, "f0", "f0");
-		tempFile(d1, "f1", "f1");
-		tempFile(d1, "f2", "f2");
-		tempFile(d2, "f3", "f3");
-		tempFile(d2, "f4", "f4");
+		tempFile(dir1, "f1", "f1");
+		tempFile(dir1, "f2", "f2");
+		tempFile(dir2, "f3", "f3");
+		tempFile(dir2, "f4", "f4");
+		tempFile(dir3, "fx", "fx");
 	}
 	
 	@Test
 	public void testRecurseIntoDirectories() throws Exception {
 		Recorder recorder = new Recorder(checksummer, logger, -1);
-		Record r = recorder.record(tmpdir);
-		assertEquals(3, r.getRecords().size());
-		assertEquals("dir1, true, 0, , 2", digest(r.getRecords().get(0)));
-		{
-			assertEquals("f1, false, 2, bd19836ddb62c11c55ab251ccaca5645, 0", digest(r.getRecords().get(0).getRecords().get(0)));
-			assertEquals("f2, false, 2, 3667f6a0c97490758d7dc9659d01ea34, 0", digest(r.getRecords().get(0).getRecords().get(1)));
-		}
-		assertEquals("dir2, true, 0, , 2", digest(r.getRecords().get(1)));
-		{
-			assertEquals("f3, false, 2, 1779cf3aa50c413afc7e05adb7e1b0de, 0", digest(r.getRecords().get(1).getRecords().get(0)));
-			assertEquals("f4, false, 2, 6e1fcd704528ad8bf6d6bbedb9210096, 0", digest(r.getRecords().get(1).getRecords().get(1)));
-		}
-		assertEquals("f0, false, 2, cae8a623cc417d219936676028e26d4f, 0", digest(r.getRecords().get(2)));
+		RecorderResult rr = recorder.record(tmpdir);
+		assertEquals(6, rr.getRecords().size());
+		assertEquals("r;dir1/f1|2|bd19836ddb62c11c55ab251ccaca5645", rr.getRecords().get(0).toString());
+		assertEquals("r;dir1/f2|2|3667f6a0c97490758d7dc9659d01ea34", rr.getRecords().get(1).toString());
+		assertEquals("r;dir2/dir3/fx|2|c3f9558d681bac963339b7c69894c4f7", rr.getRecords().get(2).toString());
+		assertEquals("r;dir2/f3|2|1779cf3aa50c413afc7e05adb7e1b0de", rr.getRecords().get(3).toString());
+		assertEquals("r;dir2/f4|2|6e1fcd704528ad8bf6d6bbedb9210096", rr.getRecords().get(4).toString());
+		assertEquals("r;f0|2|cae8a623cc417d219936676028e26d4f", rr.getRecords().get(5).toString());
 	}
 
 	
 	@Test
-	public void testMaxDepth() throws Exception {
+	public void testMaxDepthZero() throws Exception {
 		Recorder recorder = new Recorder(checksummer, logger, 0);
-		Record r = recorder.record(tmpdir);
-		assertEquals(3, r.getRecords().size());
-		assertEquals("dir1, true, 0, , 0", digest(r.getRecords().get(0)));
-		assertEquals("dir2, true, 0, , 0", digest(r.getRecords().get(1)));
-		assertEquals("f0, false, 2, cae8a623cc417d219936676028e26d4f, 0", digest(r.getRecords().get(2)));
+		RecorderResult rr = recorder.record(tmpdir);
+		assertEquals(1, rr.getRecords().size());
+		assertEquals("r;f0|2|cae8a623cc417d219936676028e26d4f", rr.getRecords().get(0).toString());
+	}
+	
+	@Test
+	public void testMaxDepthOne() throws Exception {
+		Recorder recorder = new Recorder(checksummer, logger, 1);
+		RecorderResult rr = recorder.record(tmpdir);
+		assertEquals(5, rr.getRecords().size());
+		assertEquals("r;dir1/f1|2|bd19836ddb62c11c55ab251ccaca5645", rr.getRecords().get(0).toString());
+		assertEquals("r;dir1/f2|2|3667f6a0c97490758d7dc9659d01ea34", rr.getRecords().get(1).toString());
+		assertEquals("r;dir2/f3|2|1779cf3aa50c413afc7e05adb7e1b0de", rr.getRecords().get(2).toString());
+		assertEquals("r;dir2/f4|2|6e1fcd704528ad8bf6d6bbedb9210096", rr.getRecords().get(3).toString());
+		assertEquals("r;f0|2|cae8a623cc417d219936676028e26d4f", rr.getRecords().get(4).toString());
 	}
 
-	
-	private String digest(Record r ) {
-		return ""+r.getName()+", "+r.isDirectory()+", "+r.getLength()+", "+r.getChecksum()+", "+r.getRecords().size();
-	}
 }

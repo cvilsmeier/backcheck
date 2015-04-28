@@ -4,8 +4,8 @@ import java.io.File;
 
 import de.backcheck.compare.CompareResult;
 import de.backcheck.compare.Comparer;
-import de.backcheck.record.Record;
 import de.backcheck.record.Recorder;
+import de.backcheck.record.RecorderResult;
 import de.backcheck.verify.Verifier;
 import de.backcheck.verify.VerifyResult;
 
@@ -83,7 +83,6 @@ public class Backcheck {
 		logger.info("comparing " + srcPath + " -> " + destPath);
 		Comparer comparer = new Comparer(checksummer, logger, maxdepth);
 		CompareResult compareResult = comparer.compare(srcPath, destPath);
-		logger.info("finished comparing " + srcPath + " | " + destPath);
 		logger.info("  " + compareResult.getPathCount() + " files compared");
 		logger.info("  " + compareResult.getDiffCount() + " differences found");
 		int exitCode = 0;
@@ -96,16 +95,11 @@ public class Backcheck {
 	public static int executeRecord(Checksummer checksummer, Logger logger, int maxdepth, File srcPath, File destFile) {
 		logger.info("recording " + srcPath + " -> " + destFile);
 		Recorder recorder = new Recorder(checksummer, logger, maxdepth);
-		Record rootRecord = recorder.record(srcPath);
+		RecorderResult recorderResult = recorder.record(srcPath);
+		logger.info("  " + recorderResult.getRecords().size() + " files recorded");
 		int exitCode = 0;
 		try {
-			if (rootRecord != null) {
-				rootRecord.writeToFile(destFile);
-				logger.info("finished recording " + srcPath + ", wrote record file " + destFile);
-			} else {
-				System.err.println("recorder error");
-				exitCode = 2;
-			}
+			recorderResult.writeToFile(destFile);
 		} catch (Exception e) {
 			System.err.println("cannot write " + destFile + " (" + e.getMessage() + ")");
 			exitCode = 2;
@@ -116,22 +110,18 @@ public class Backcheck {
 	public static int executeVerify(Checksummer checksummer, Logger logger, File srcFile, File destPath) {
 		logger.info("verifying " + srcFile + " -> " + destPath);
 		int exitCode = 0;
-		Record rootRecord = null;
 		try {
-			rootRecord = Record.readFromFile(srcFile);
-		} catch (Exception e) {
-			System.err.println("cannot read " + srcFile + " (" + e.getMessage()+")");
-			exitCode = 2;
-		}
-		if (rootRecord != null) {
+			RecorderResult recorderResult = RecorderResult.readFromFile(srcFile);
 			Verifier verifier = new Verifier(checksummer, logger);
-			VerifyResult verifyResult = verifier.verify(rootRecord, destPath);
-			logger.info("finished verification of " + destPath);
-			logger.info("  " + verifyResult.getRecordCount() + " recorded paths compared");
+			VerifyResult verifyResult = verifier.verify(destPath, recorderResult.getRecords());
+			logger.info("  " + verifyResult.getFileCount() + " files verified");
 			logger.info("  " + verifyResult.getDiffCount() + " differences found");
 			if (verifyResult.getDiffCount() > 0) {
 				exitCode = 1;
 			}
+		} catch (Exception e) {
+			System.err.println("verify error (" + e.getMessage()+")");
+			exitCode = 2;
 		}
 		return exitCode;
 	}

@@ -1,7 +1,6 @@
 package de.backcheck.record;
 
 import java.io.File;
-import java.util.ArrayList;
 
 import de.backcheck.Checksummer;
 import de.backcheck.Logger;
@@ -20,34 +19,30 @@ public class Recorder {
 		this.maxdepth = maxdepth;
 	}
 
-	public Record record(File root) {
-		return record(0, root, "");
+	public RecorderResult record(File root) {
+		RecorderResult recorderResult = new RecorderResult();
+		record(0, root, "", recorderResult);
+		return recorderResult;
 	}
 
-	private Record record(int depth, File root, String relPath) {
-		Record record = null;
+	private void record(int depth, File root, String relPath, RecorderResult recorderResult) {
 		File file = new File(root, relPath);
 		logger.debug(file.toString());
 		if (file.isDirectory()) {
-			ArrayList<Record> records = new ArrayList<Record>();
 			if (maxdepth < 0 || depth <= maxdepth) {
 				for (String name : FileUtils.listAndSortFilenames(file)) {
 					String subPath = relPath.isEmpty() ? name : relPath + "/" + name;
-					Record subRecord = record(depth + 1, root, subPath);
-					if (subRecord != null) {
-						records.add(subRecord);
-					}
+					record(depth + 1, root, subPath, recorderResult);
 				}
 			}
-			record = new Record(file.getName(), true, 0, "", records);
 		} else if (file.isFile()) {
 			try {
 				String checksum = checksummer.checksum(file);
-				record = new Record(file.getName(), false, file.length(), checksum);
+				Record record = new Record(relPath, file.length(), checksum);
+				recorderResult.addRecord(record);
 			} catch (Exception e) {
 				logger.info("IO ERROR       " + file + " (" + e.getMessage() + ")");
 			}
 		}
-		return record;
 	}
 }

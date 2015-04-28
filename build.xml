@@ -1,5 +1,5 @@
 
-<project name="cmark-java" default="build-all" basedir=".">
+<project name="backcheck" default="build-all" basedir=".">
 
 	<target name="init">
 		<path id="classpath.ref">

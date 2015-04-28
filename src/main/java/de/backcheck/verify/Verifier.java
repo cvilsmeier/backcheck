@@ -2,6 +2,7 @@ package de.backcheck.verify;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import de.backcheck.Checksummer;
 import de.backcheck.Logger;
@@ -18,52 +19,34 @@ public class Verifier {
 		this.logger = logger;
 	}
 	
-	public VerifyResult verify(Record rootRecord, File destRoot) {
+	public VerifyResult verify(File destRoot, List<Record> records) {
 		VerifyResult verifyResult = new VerifyResult();
-		verify(rootRecord, destRoot, "", verifyResult);
-		return verifyResult;
-	}
-	
-	private void verify(Record record, File destRoot, String relPath, VerifyResult verifyResult) {
-		File destPath = relPath.isEmpty() ? destRoot : new File(destRoot, relPath);
-		logger.debug(destPath.toString());
-		verifyResult.incRecordCount();
-		if( destPath.exists() ) {
-			if( record.isDirectory() ) {
-				if( destPath.isDirectory() ) {
-					for( Record r : record.getRecords() ) {
-						verify(r, destRoot, relPath.isEmpty() ? r.getName() : relPath+"/"+r.getName(), verifyResult);
-					}
-				} else {
-					logger.info("DIFF TYPE      "+destPath+" (expected directory but was file)");
-					verifyResult.incDiffCount();
-				}
-			} else {
-				if( destPath.isFile() ) {
-					if( record.getLength() == destPath.length() ) {
-						try {
-							String destChecksum = checksummer.checksum(destPath);
-							if( ! record.getChecksum().equals(destChecksum) ) {
-								logger.info("DIFF CHECKSUM  "+destPath);
-								verifyResult.incDiffCount();
-							}
-						} catch (IOException e) {
-							logger.info("IO ERROR       "+destPath);
+		for( Record record : records ) {
+			File destFile = record.getRelPath().isEmpty() ? destRoot : new File(destRoot, record.getRelPath());
+			logger.debug(destFile.toString());
+			verifyResult.incFileCount();
+			if( destFile.isFile() ) {
+				if( record.getLength() == destFile.length() ) {
+					try {
+						String destChecksum = checksummer.checksum(destFile);
+						if( ! record.getChecksum().equals(destChecksum) ) {
+							logger.info("DIFF CHECKSUM  "+destFile);
 							verifyResult.incDiffCount();
 						}
-					} else {
-						logger.info("DIFF LENGTH    "+destPath);
+					} catch (IOException e) {
+						logger.info("IO ERROR       "+destFile);
 						verifyResult.incDiffCount();
 					}
 				} else {
-					logger.info("DIFF TYPE      "+destPath+" (expected file but found a directory)");
+					logger.info("DIFF LENGTH    "+destFile);
 					verifyResult.incDiffCount();
 				}
+			} else {
+				logger.info("NOT FOUND      "+destFile);
+				verifyResult.incDiffCount();
 			}
-		} else {
-			logger.info("NOT FOUND      "+destPath);
-			verifyResult.incDiffCount();
 		}
+		return verifyResult;
 	}
-
+	
 }
