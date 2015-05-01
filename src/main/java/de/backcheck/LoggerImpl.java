@@ -4,25 +4,35 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.io.PrintStream;
 
 public class LoggerImpl implements Logger, Closeable {
 
 	private final int verbosity;
-	private final OutputStreamWriter outOrNull;
-	private final String lineSeparator;
+	private final PrintStream outOrNull;
 
 	public LoggerImpl(int verbosity, File logfileOrNull) {
 		super();
 		this.verbosity = verbosity;
-		OutputStreamWriter out = null;
+		PrintStream out = null;
 		if (logfileOrNull != null) {
 			try {
-				out = new OutputStreamWriter(new FileOutputStream(logfileOrNull, true), "UTF-8");
+				out = new PrintStream(new FileOutputStream(logfileOrNull, true), true, "UTF-8");
 			} catch (IOException ignore) {}
 		}
 		this.outOrNull = out;
-		this.lineSeparator = System.getProperty("line.separator");
+	}
+
+	@Override
+	public void error(String msg, Throwable t) {
+		if (verbosity >= 0) {
+			System.err.println(msg);
+			t.printStackTrace(System.err);
+			if (outOrNull != null) {
+				outOrNull.println(msg);
+				t.printStackTrace(outOrNull);
+			}
+		}
 	}
 
 	@Override
@@ -30,11 +40,7 @@ public class LoggerImpl implements Logger, Closeable {
 		if (verbosity >= 1) {
 			System.out.println(msg);
 			if (outOrNull != null) {
-				try {
-					outOrNull.write(msg);
-					outOrNull.write(lineSeparator);
-					outOrNull.flush();
-				} catch (IOException ignore) {}
+				outOrNull.println(msg);
 			}
 		}
 	}
@@ -49,9 +55,7 @@ public class LoggerImpl implements Logger, Closeable {
 	@Override
 	public void close() {
 		if( outOrNull != null ) {
-			try {
-				outOrNull.close();
-			} catch (IOException ignored) {}
+			outOrNull.close();
 		}
 	}
 

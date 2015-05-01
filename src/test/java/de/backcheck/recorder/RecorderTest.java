@@ -13,9 +13,15 @@ import de.backcheck.record.Recorder;
 import de.backcheck.record.RecorderResult;
 
 public class RecorderTest extends TestBase {
-	
+
 	static class Lger implements Logger {
 		ArrayList<String> logs = new ArrayList<String>();
+
+		@Override
+		public void error(String msg, Throwable t) {
+			logs.add(msg + " " + t.getMessage());
+		}
+
 		@Override
 		public void info(String msg) {
 			logs.add(msg);
@@ -30,7 +36,7 @@ public class RecorderTest extends TestBase {
 	ChecksummerImpl checksummer;
 	Lger logger;
 	File tmpdir;
-	
+
 	@Before
 	public void setup() throws Exception {
 		checksummer = new ChecksummerImpl();
@@ -46,7 +52,7 @@ public class RecorderTest extends TestBase {
 		tempFile(dir2, "f4", "f4");
 		tempFile(dir3, "fx", "fx");
 	}
-	
+
 	@Test
 	public void testRecurseIntoDirectories() throws Exception {
 		Recorder recorder = new Recorder(checksummer, logger, -1);
@@ -60,7 +66,6 @@ public class RecorderTest extends TestBase {
 		assertEquals("r;f0|2|cae8a623cc417d219936676028e26d4f", rr.getRecords().get(5).toString());
 	}
 
-	
 	@Test
 	public void testMaxDepthZero() throws Exception {
 		Recorder recorder = new Recorder(checksummer, logger, 0);
@@ -68,7 +73,7 @@ public class RecorderTest extends TestBase {
 		assertEquals(1, rr.getRecords().size());
 		assertEquals("r;f0|2|cae8a623cc417d219936676028e26d4f", rr.getRecords().get(0).toString());
 	}
-	
+
 	@Test
 	public void testMaxDepthOne() throws Exception {
 		Recorder recorder = new Recorder(checksummer, logger, 1);

@@ -1,7 +1,6 @@
 package de.backcheck;
 
 import java.io.File;
-import java.util.Date;
 
 import de.backcheck.compare.CompareResult;
 import de.backcheck.compare.Comparer;
@@ -81,30 +80,31 @@ public class Backcheck {
 	}
 
 	public static int executeCompare(Checksummer checksummer, Logger logger, int maxdepth, File srcPath, File destPath) {
-		logger.info(""+new Date());
 		logger.info("comparing " + srcPath + " -> " + destPath);
-		Comparer comparer = new Comparer(checksummer, logger, maxdepth);
-		CompareResult compareResult = comparer.compare(srcPath, destPath);
-		logger.info("  " + compareResult.getPathCount() + " files compared");
-		logger.info("  " + compareResult.getDiffCount() + " differences found");
 		int exitCode = 0;
-		if (compareResult.getDiffCount() > 0) {
-			exitCode = 1;
+		try {
+			Comparer comparer = new Comparer(checksummer, logger, maxdepth);
+			CompareResult compareResult = comparer.compare(srcPath, destPath);
+			logger.info("  " + compareResult.getPathCount() + " files compared");
+			logger.info("  " + compareResult.getDiffCount() + " differences found");
+			exitCode = compareResult.getDiffCount() == 0 ? 0 : 1;
+		} catch (Exception e) {
+			logger.error("compare error", e);
+			exitCode = 2;
 		}
-		logger.info(""+new Date());
 		return exitCode;
 	}
 
 	public static int executeRecord(Checksummer checksummer, Logger logger, int maxdepth, File srcPath, File destFile) {
 		logger.info("recording " + srcPath + " -> " + destFile);
-		Recorder recorder = new Recorder(checksummer, logger, maxdepth);
-		RecorderResult recorderResult = recorder.record(srcPath);
-		logger.info("  " + recorderResult.getRecords().size() + " files recorded");
 		int exitCode = 0;
 		try {
+			Recorder recorder = new Recorder(checksummer, logger, maxdepth);
+			RecorderResult recorderResult = recorder.record(srcPath);
+			logger.info("  " + recorderResult.getRecords().size() + " files recorded");
 			recorderResult.writeToFile(destFile);
 		} catch (Exception e) {
-			System.err.println("cannot write " + destFile + " (" + e.getMessage() + ")");
+			logger.error("record error", e);
 			exitCode = 2;
 		}
 		return exitCode;
@@ -123,7 +123,7 @@ public class Backcheck {
 				exitCode = 1;
 			}
 		} catch (Exception e) {
-			System.err.println("verify error (" + e.getMessage()+")");
+			logger.error("verify error", e);
 			exitCode = 2;
 		}
 		return exitCode;

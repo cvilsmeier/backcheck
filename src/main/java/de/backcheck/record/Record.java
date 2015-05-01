@@ -12,7 +12,7 @@ public class Record {
 		} else {
 			throw new IOException("invalid record line '"+line+"'");
 		}
-		long length = Integer.parseInt(toks[1]);
+		long length = Long.parseLong(toks[1]);
 		String checksum = toks[2];
 		return new Record(relPath, length, checksum);
 	}

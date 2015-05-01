@@ -25,12 +25,18 @@ public class VerifierTest extends TestBase {
 			int c = in.read(buf);
 			in.close();
 			assertEquals(file.length(), c);
-			return new String(buf,0,c);
+			return new String(buf, 0, c);
 		}
 	}
-	
+
 	static class Lger implements Logger {
-		ArrayList<String> logs= new ArrayList<String>();
+		ArrayList<String> logs = new ArrayList<String>();
+
+		@Override
+		public void error(String msg, Throwable t) {
+			logs.add(msg + " " + t.getMessage());
+		}
+
 		@Override
 		public void info(String msg) {
 			logs.add(msg);
@@ -46,7 +52,7 @@ public class VerifierTest extends TestBase {
 	File tmpdir;
 	RecorderResult rr;
 	File dir1, f1, dir2, f2, dir3, f3, f0;
-	
+
 	@Before
 	public void setup() throws Exception {
 		checksummer = new Csummer();
@@ -87,7 +93,7 @@ public class VerifierTest extends TestBase {
 		Verifier v = new Verifier(checksummer, logger);
 		v.verify(tmpdir, rr.getRecords());
 		assertEquals(1, logger.logs.size());
-		assertLog("DIFF LENGTH", File.separator+"f0", logger.logs.remove(0));
+		assertLog("DIFF LENGTH", File.separator + "f0", logger.logs.remove(0));
 	}
 
 	@Test
@@ -96,7 +102,7 @@ public class VerifierTest extends TestBase {
 		Verifier v = new Verifier(checksummer, logger);
 		v.verify(tmpdir, rr.getRecords());
 		assertEquals(1, logger.logs.size());
-		assertLog("DIFF CHECKSUM", File.separator+"f0", logger.logs.remove(0));
+		assertLog("DIFF CHECKSUM", File.separator + "f0", logger.logs.remove(0));
 	}
 
 	@Test
@@ -105,7 +111,7 @@ public class VerifierTest extends TestBase {
 		Verifier v = new Verifier(checksummer, logger);
 		v.verify(tmpdir, rr.getRecords());
 		assertEquals(1, logger.logs.size());
-		assertLog("NOT FOUND", "dir1"+File.separator+"f1", logger.logs.remove(0));
+		assertLog("NOT FOUND", "dir1" + File.separator + "f1", logger.logs.remove(0));
 	}
 
 	@Test
@@ -115,20 +121,18 @@ public class VerifierTest extends TestBase {
 		Verifier v = new Verifier(checksummer, logger);
 		v.verify(tmpdir, rr.getRecords());
 		assertEquals(1, logger.logs.size());
-		assertLog("NOT FOUND", "dir1"+File.separator+"f1", logger.logs.remove(0));
+		assertLog("NOT FOUND", "dir1" + File.separator + "f1", logger.logs.remove(0));
 	}
 
-
-	
 	private void assertLog(String start, String end, String log) {
-		assertEquals("'"+log+"' must start with '"+start+"'", start, log.substring(0,start.length()));
-		assertEquals("'"+log+"' must end with '"+end+"'", end, log.substring(log.length()-end.length()));
+		assertEquals("'" + log + "' must start with '" + start + "'", start, log.substring(0, start.length()));
+		assertEquals("'" + log + "' must end with '" + end + "'", end, log.substring(log.length() - end.length()));
 	}
 
 	private void writeFile(File file, String data) throws IOException {
-		try ( FileOutputStream out = new FileOutputStream(file) ) {
+		try (FileOutputStream out = new FileOutputStream(file)) {
 			out.write(data.getBytes());
 		}
 	}
-	
+
 }
